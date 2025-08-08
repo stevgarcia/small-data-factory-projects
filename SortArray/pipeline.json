@@ -1,0 +1,379 @@
+{
+    "name": "pipeline1",
+    "properties": {
+        "activities": [
+            {
+                "name": "Set variable1",
+                "type": "SetVariable",
+                "dependsOn": [],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "InputArray",
+                    "value": {
+                        "value": "@pipeline().parameters.InputArray",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "iteration",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "Set variable1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "Iteration",
+                    "value": {
+                        "value": "@range(0,add(length(variables('InputArray')),-1))",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Until1",
+                "type": "Until",
+                "dependsOn": [
+                    {
+                        "activity": "iteration",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@empty(variables('Iteration'))",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "CurrentIndex",
+                            "type": "SetVariable",
+                            "dependsOn": [],
+                            "policy": {
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "CurrentIndex",
+                                "value": {
+                                    "value": "@string(variables('Iteration')[0])",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "nextIndex",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "CurrentIndex",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "NextIndex",
+                                "value": {
+                                    "value": "@string(add(int(variables('Iteration')[0]),1))",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "If Condition1",
+                            "type": "IfCondition",
+                            "dependsOn": [
+                                {
+                                    "activity": "nextIndex",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "expression": {
+                                    "value": "@greater(variables('InputArray')[int(variables('CurrentIndex'))],variables('InputArray')[int(variables('NextIndex'))])",
+                                    "type": "Expression"
+                                },
+                                "ifFalseActivities": [
+                                    {
+                                        "name": "TmpIteration",
+                                        "type": "SetVariable",
+                                        "dependsOn": [],
+                                        "policy": {
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "TempIteration",
+                                            "value": {
+                                                "value": "@skip(variables('Iteration'),1)",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "UpdateIteration",
+                                        "type": "SetVariable",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "TmpIteration",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "Iteration",
+                                            "value": {
+                                                "value": "@variables('TempIteration')",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "ifTrueActivities": [
+                                    {
+                                        "name": "left",
+                                        "type": "SetVariable",
+                                        "dependsOn": [],
+                                        "policy": {
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "Left",
+                                            "value": {
+                                                "value": "@take(variables('InputArray'),int(variables('CurrentIndex') ))",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "right",
+                                        "type": "SetVariable",
+                                        "dependsOn": [],
+                                        "policy": {
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "Rigth",
+                                            "value": {
+                                                "value": "@skip(variables('InputArray'),add(int(variables('NextIndex')),1))",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "tempArray",
+                                        "type": "SetVariable",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "left",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            {
+                                                "activity": "right",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "TempArray",
+                                            "value": {
+                                                "value": "@createArray(if(empty(variables('Left')),'',variables('Left')),variables('InputArray')[int(variables('NextIndex'))],variables('InputArray')[int(variables('CurrentIndex'))],if(empty(variables('Rigth')),'',variables('Rigth')))",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "SwappedArray",
+                                        "type": "SetVariable",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "tempArray",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "SwappedArray",
+                                            "value": {
+                                                "value": "@json(concat('[',replace(replace(replace(replace(string(variables('TempArray')),'[',''),']',''),'\"\",',''),'\"\"',''),']'))",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "updateInputArray",
+                                        "type": "SetVariable",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "SwappedArray",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "InputArray",
+                                            "value": {
+                                                "value": "@variables('SwappedArray')",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "ResetIteration",
+                                        "type": "SetVariable",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "updateInputArray",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "variableName": "Iteration",
+                                            "value": {
+                                                "value": "@range(0,add(length(variables('InputArray')),-1))",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "timeout": "0.12:00:00"
+                }
+            },
+            {
+                "name": "FinalSortedArray",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "Until1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "FinalArray",
+                    "value": {
+                        "value": "@variables('InputArray')",
+                        "type": "Expression"
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "InputArray": {
+                "type": "array",
+                "defaultValue": [
+                    3,
+                    2,
+                    1,
+                    4
+                ]
+            }
+        },
+        "variables": {
+            "InputArray": {
+                "type": "Array"
+            },
+            "Iteration": {
+                "type": "Array"
+            },
+            "CurrentIndex": {
+                "type": "String"
+            },
+            "NextIndex": {
+                "type": "String"
+            },
+            "Left": {
+                "type": "Array"
+            },
+            "Rigth": {
+                "type": "Array"
+            },
+            "TempArray": {
+                "type": "Array"
+            },
+            "SwappedArray": {
+                "type": "Array"
+            },
+            "TempIteration": {
+                "type": "Array"
+            },
+            "FinalArray": {
+                "type": "Array"
+            }
+        },
+        "annotations": []
+    }
+}
